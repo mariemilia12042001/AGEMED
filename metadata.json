@@ -1,0 +1,10 @@
+{
+  "name": "Remix: AGEMED",
+  "description": "Aplicativo móvil de salud para consultas de citas, seguimiento antes y después de la cita, recordatorio de medicamentos e historial clínico seguro.",
+  "requestFramePermissions": [
+    "notifications"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
