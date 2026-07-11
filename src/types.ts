@@ -6,6 +6,10 @@ export interface Doctor {
   image: string;
   description: string;
   location: string;
+  // Días de la semana en que atiende (0=Domingo, 1=Lunes, ..., 6=Sábado)
+  availableWeekdays?: number[];
+  // Franjas horarias en que atiende ese doctor
+  availableTimeSlots?: string[];
 }
 
 export interface EncryptedValue {

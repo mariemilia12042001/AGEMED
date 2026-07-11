@@ -130,7 +130,7 @@ export default function PhoneFrame({ children }: { children: React.ReactNode }) 
           <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-stone-200 py-2.5 px-4 grid grid-cols-4 gap-1 text-center text-[10px] font-bold text-stone-400 z-40 shrink-0">
             {[
               { path: "/dashboard", label: "Inicio", icon: HomeIcon },
-              { path: "/pre-appointment", label: "Citas", icon: CalendarCheckIcon, aliasPaths: ["/doctors", "/consultation-form", "/date-selection", "/confirmed"] },
+              { path: "/mis-citas", label: "Citas", icon: CalendarCheckIcon, aliasPaths: ["/pre-appointment", "/doctors", "/consultation-form", "/date-selection", "/confirmed", "/reservar-cita"] },
               { path: "/history", label: "Historial", icon: ClockHistoryIcon },
               { path: "/profile", label: "Perfil", icon: UserIconBadge }
             ].map((item) => {

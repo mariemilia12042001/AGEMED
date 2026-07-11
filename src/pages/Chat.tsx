@@ -39,7 +39,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-stone-100/40 text-neutral-900 text-left">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-stone-100/40 text-neutral-900 text-left pb-16">
       
       {/* Header Bar */}
       <div className="flex justify-between items-center py-3 px-6 border-b border-stone-200 bg-white">

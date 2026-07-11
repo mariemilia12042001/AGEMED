@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 // ─── Lazy-loaded pages (code-split per route) ────────────────────────────────
 const Login             = lazy(() => import("../pages/Login"));
@@ -37,6 +38,7 @@ function PageLoader() {
 
 export default function AppRouter() {
   return (
+    <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Login />} />
@@ -94,6 +96,7 @@ export default function AppRouter() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   );
 }
 
