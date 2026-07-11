@@ -48,13 +48,18 @@ export const initialDoctors: Doctor[] = [
   }
 ];
 
+// Fecha de la cita demo: mañana
+const _tomorrow = new Date();
+_tomorrow.setDate(_tomorrow.getDate() + 1);
+const _tomorrowIso = `${_tomorrow.getFullYear()}-${String(_tomorrow.getMonth() + 1).padStart(2, "0")}-${String(_tomorrow.getDate()).padStart(2, "0")}`;
+
 export const initialAppointments: Appointment[] = [
   {
     id: "appt-1",
     doctorName: "Dr. Alejandro Valdivia",
     specialty: "Cardiología Preventiva",
     doctorPhoto: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300",
-    date: "Mañana, 14 de Octubre",
+    date: _tomorrowIso,
     time: "10:30 AM",
     locationName: "Clínica San Lucas",
     locationDetails: "Torre Médica, Piso 4, Consultorio 402",

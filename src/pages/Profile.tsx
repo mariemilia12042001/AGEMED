@@ -1,49 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppContext";
 import { 
-  User, Phone, ChevronRight, Bell, Shield, HelpCircle, LogOut, ShieldAlert 
+  User, Phone, ChevronRight, Bell, Shield, HelpCircle, LogOut 
 } from "lucide-react";
-import { encryptData } from "../utils/crypto";
-import SensitiveDataField from "../components/SensitiveDataField";
 
 export default function Profile() {
   const navigate = useNavigate();
   const {
     playSoundEffect,
     setIsLoggedIn,
-    setDniInput,
     setIsCallActive,
     patientProfile,
-    patientId,
-    refetchPatientData
   } = useAppState();
 
-  const [encryptedData, setEncryptedData] = useState<{
-    emergencyPhone: any;
-  } | null>(null);
-
-  useEffect(() => {
-    async function loadProfileValues() {
-      if (patientProfile) {
-        setEncryptedData({
-          emergencyPhone: patientProfile.emergency_phone_encrypted ? {
-            ciphertext: patientProfile.emergency_phone_encrypted,
-            iv: patientProfile.emergency_phone_iv,
-            salt: patientProfile.emergency_phone_salt
-          } : null
-        });
-      } else {
-        try {
-          const phoneEnc = await encryptData("+34 600 000 000 (Ricardo Martínez)", "1234");
-          setEncryptedData({ emergencyPhone: phoneEnc });
-        } catch (err) {
-          console.error("Critical: Could not initialize secure medical profile", err);
-        }
-      }
-    }
-    loadProfileValues();
-  }, [patientProfile]);
+  const emergencyPhone = patientProfile?.emergency_phone || "+34 600 000 000";
+  const emergencyContactName = patientProfile?.emergency_contact_name || "Ricardo Martínez (Hijo)";
 
   const handleLogOut = () => {
     playSoundEffect("hangup");
@@ -54,11 +26,6 @@ export default function Profile() {
   const handleDialEmergency = () => {
     playSoundEffect("call");
     setIsCallActive(true);
-  };
-
-  const handleConfigAlert = (label: string) => {
-    playSoundEffect("click");
-    alert(`La sección de configuración "${label}" se encuentra cifrada de acuerdo con las normativas internacionales de protección de datos de EsSalud.`);
   };
 
   return (
@@ -92,14 +59,6 @@ export default function Profile() {
           <p className="text-stone-400 text-xs font-mono font-medium tracking-wide mt-1 uppercase">Asegurado de EsSalud</p>
         </div>
 
-        {/* Security Alert Header Banner */}
-        <div className="mt-4 bg-[#FAF6F0] border border-amber-200 rounded-xl p-3 flex gap-2.5 items-center">
-          <Shield className="w-5 h-5 text-amber-700 shrink-0" />
-          <div className="text-[10px] text-amber-900 font-medium leading-relaxed">
-            <span className="font-bold">Datos Criptográficos:</span> Su perfil cuenta con cifrado <span className="font-bold">AES-GCM-256</span> local. Utilice el PIN de demostración <span className="font-mono bg-amber-100 px-1 py-0.2 rounded font-bold">1234</span> para consultar su información médica.
-          </div>
-        </div>
-
         {/* Clinical File details cards spacing */}
         <div className="mt-5 space-y-3">
           <div className="bg-white p-3.5 rounded-xl border border-stone-155 shadow-xs text-center relative overflow-hidden">
@@ -107,7 +66,6 @@ export default function Profile() {
             <span className="block text-[10px] uppercase font-bold text-stone-400 tracking-wider font-mono">Nombre Completo</span>
             <span className="text-sm font-bold text-stone-900 mt-1 block">{patientProfile?.full_name || "Elena Martínez Ruiz"}</span>
           </div>
-
         </div>
 
         {/* EMERGENCY DIAL CONTROLS */}
@@ -122,21 +80,15 @@ export default function Profile() {
             </div>
             <div>
               <h4 className="text-sm font-bold font-serif text-[#324537] leading-none">Contacto de Emergencia</h4>
-              <p className="text-[10px] text-stone-500 font-mono font-semibold mt-1">Llamada segura</p>
+              <p className="text-[10px] text-stone-500 font-mono font-semibold mt-1">Llamada directa</p>
             </div>
           </div>
 
-          <h5 className="text-sm font-bold text-stone-900">{patientProfile?.emergency_contact_name || "Ricardo Martínez (Hijo)"}</h5>
+          <h5 className="text-sm font-bold text-stone-900">{emergencyContactName}</h5>
           
-          {/* Encrypted Phone field inside the Emergency Contact */}
-          <div className="mt-2.5">
-            {encryptedData && (
-              <SensitiveDataField 
-                label="Teléfono de Emergencia" 
-                encryptedData={encryptedData.emergencyPhone}
-                className="bg-[#FAFAF9]"
-              />
-            )}
+          <div className="mt-2.5 bg-[#FAFAF9] p-3 rounded-xl border border-stone-200">
+            <span className="block text-[10px] uppercase font-bold text-stone-400 tracking-wider font-mono">Teléfono de Emergencia</span>
+            <span className="text-sm font-bold text-stone-900 font-mono tracking-wide mt-1 block">{emergencyPhone}</span>
           </div>
 
           <button 

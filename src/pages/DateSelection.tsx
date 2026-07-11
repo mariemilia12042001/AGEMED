@@ -5,7 +5,6 @@ import {
   ArrowLeft, ChevronRight, Clock, Check, AlertCircle 
 } from "lucide-react";
 import { Appointment } from "../types";
-import { createAppointment } from "../../lib/supabase/appointment";
 
 export default function DateSelection() {
   const navigate = useNavigate();
@@ -18,13 +17,8 @@ export default function DateSelection() {
     consultationReason,
     symptomsInput,
     symptomsDuration,
-    appointments,
     setAppointments,
-    notifications,
-    setNotifications,
     playSoundEffect,
-    patientId,
-    refetchPatientData
   } = useAppState();
 
   const [loading, setLoading] = useState(false);
@@ -35,7 +29,7 @@ export default function DateSelection() {
     navigate("/consultation-form");
   };
 
-  const handleConfirmReservation = async () => {
+  const handleConfirmReservation = () => {
     if (!selectedDoctor) {
       setError("Por favor, seleccione un especialista primero.");
       return;
@@ -45,69 +39,29 @@ export default function DateSelection() {
     setLoading(true);
     setError(null);
 
-    // Formatear fecha como YYYY-MM-DD
-    const formattedDate = `2026-10-${selectedBookDate.toString().padStart(2, "0")}`;
+    const now = new Date();
+    const isoDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(selectedBookDate).padStart(2, "0")}`;
 
-    try {
-      const res = await createAppointment({
-        patientId,
-        doctorId: selectedDoctor.id,
-        date: formattedDate,
-        timeSlot: selectedBookTime,
-        consultationReason: consultationReason || "Control de salud integral y consulta médica.",
-        symptoms: symptomsInput || "Ninguno",
-        symptomsDuration: symptomsDuration
-      });
+    const locationParts = (selectedDoctor.location || "").split(",");
+    const newAppointment: Appointment = {
+      id: `appt-${Date.now()}`,
+      doctorName: selectedDoctor.name,
+      specialty: selectedDoctor.specialty,
+      doctorPhoto: selectedDoctor.image,
+      date: isoDate,
+      time: selectedBookTime,
+      locationName: (locationParts[0] || "Hospital de EsSalud").trim(),
+      locationDetails: (locationParts.slice(1).join(",") || "Piso 4, Consultorio 402").trim(),
+      status: "scheduled",
+      consultationReason: consultationReason || "Control de salud integral y consulta médica.",
+      symptoms: symptomsInput || "Ninguno",
+      symptomsDuration: symptomsDuration,
+    };
 
-      if (res.error) {
-        console.warn("Error al crear cita en Supabase, simulando inserción local:", res.error);
-        
-        // Fallback local
-        const newAppointment: Appointment = {
-          id: `appt-${Date.now()}`,
-          doctorName: selectedDoctor.name,
-          specialty: selectedDoctor.specialty,
-          doctorPhoto: selectedDoctor.image,
-          date: `Jueves, ${selectedBookDate} de Octubre`,
-          time: selectedBookTime,
-          locationName: selectedDoctor.location.split(',')[0] || "Hospital de EsSalud",
-          locationDetails: selectedDoctor.location.split(',')[1] || "Piso 4, Consultorio 402",
-          status: "scheduled",
-          consultationReason: consultationReason || "Control de salud integral y consulta médica.",
-          symptoms: symptomsInput || "Ninguno",
-          symptomsDuration: symptomsDuration
-        };
-        setAppointments((prev: Appointment[]) => [newAppointment, ...prev]);
-        playSoundEffect("success");
-        navigate("/confirmed");
-      } else if (res.data) {
-        playSoundEffect("success");
-        await refetchPatientData(); // Refrescar citas del paciente
-        navigate("/confirmed");
-      }
-    } catch (err: any) {
-      console.error("Excepción en creación de cita, simulando local:", err);
-      // Fallback local
-      const newAppointment: Appointment = {
-        id: `appt-${Date.now()}`,
-        doctorName: selectedDoctor.name,
-        specialty: selectedDoctor.specialty,
-        doctorPhoto: selectedDoctor.image,
-        date: `Jueves, ${selectedBookDate} de Octubre`,
-        time: selectedBookTime,
-        locationName: selectedDoctor.location.split(',')[0] || "Hospital de EsSalud",
-        locationDetails: selectedDoctor.location.split(',')[1] || "Piso 4, Consultorio 402",
-        status: "scheduled",
-        consultationReason: consultationReason || "Control de salud integral y consulta médica.",
-        symptoms: symptomsInput || "Ninguno",
-        symptomsDuration: symptomsDuration
-      };
-      setAppointments((prev: Appointment[]) => [newAppointment, ...prev]);
-      playSoundEffect("success");
-      navigate("/confirmed");
-    } finally {
-      setLoading(false);
-    }
+    setAppointments((prev: Appointment[]) => [newAppointment, ...prev]);
+    playSoundEffect("success");
+    setLoading(false);
+    navigate("/confirmed");
   };
 
   return (

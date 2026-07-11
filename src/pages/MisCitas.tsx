@@ -2,51 +2,50 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppContext";
 import { 
-  ArrowLeft, Calendar, MapPin, Clock, Trash2, ShieldAlert, CheckCircle, FileText, AlertCircle
+  ArrowLeft, Calendar, MapPin, Trash2, ShieldAlert
 } from "lucide-react";
-import { cancelAppointment } from "../../lib/supabase/appointment";
+
+function formatFriendlyDate(dateStr: string): string {
+  if (!dateStr) return "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const apptDate = new Date(year, month - 1, day);
+    const diffDays = Math.round((apptDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Mañana";
+    if (diffDays === -1) return "Ayer";
+    const options: Intl.DateTimeFormatOptions = { weekday: "long", day: "numeric", month: "long" };
+    const formatted = apptDate.toLocaleDateString("es-ES", options);
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function MisCitas() {
   const navigate = useNavigate();
-  const { appointments, setAppointments, playSoundEffect, setIsSideMenuOpen, refetchPatientData } = useAppState();
+  const { appointments, setAppointments, playSoundEffect, setIsSideMenuOpen } = useAppState();
   
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleBack = () => {
     playSoundEffect("click");
     navigate("/dashboard");
   };
 
-  const handleCancelAppointment = async (id: string, docName: string) => {
+  const handleCancelAppointment = (id: string, docName: string) => {
     playSoundEffect("hangup");
     const confirmCancel = window.confirm(`¿Estás seguro de que deseas cancelar la cita con el/la especialista ${docName}? Esta acción notificará inmediatamente al triaje de EsSalud.`);
     if (!confirmCancel) return;
 
     setLoadingId(id);
-    setError(null);
-
-    try {
-      const res = await cancelAppointment(id);
-      if (res.error) {
-        console.warn("Error al cancelar cita en Supabase, aplicando remoción local:", res.error);
-        // Fallback local
-        setAppointments(prev => prev.filter(app => app.id !== id));
-        playSoundEffect("success");
-        alert("Su cita ha sido cancelada exitosamente.");
-      } else {
-        playSoundEffect("success");
-        alert("Su cita ha sido cancelada exitosamente.");
-        await refetchPatientData();
-      }
-    } catch (err: any) {
-      console.error("Excepción al cancelar cita, aplicando local:", err);
-      setAppointments(prev => prev.filter(app => app.id !== id));
-      playSoundEffect("success");
-      alert("Su cita ha sido cancelada exitosamente.");
-    } finally {
-      setLoadingId(null);
-    }
+    setAppointments(prev => prev.filter(app => app.id !== id));
+    playSoundEffect("success");
+    alert("Su cita ha sido cancelada exitosamente.");
+    setLoadingId(null);
   };
 
   return (
@@ -114,7 +113,7 @@ export default function MisCitas() {
                     
                     <div className="flex flex-col gap-1.5 mt-3 text-xs text-stone-600 font-medium">
                       <span className="flex items-center gap-1.5 font-mono">
-                        <Calendar className="w-3.5 h-3.5 text-stone-400 shrink-0" /> {app.date}
+                        <Calendar className="w-3.5 h-3.5 text-stone-400 shrink-0" /> {formatFriendlyDate(app.date)}, {app.time}
                       </span>
                       <span className="flex items-center gap-1.5 font-mono">
                         <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" /> {app.locationName} - {app.locationDetails}

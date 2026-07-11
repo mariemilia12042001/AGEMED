@@ -2,17 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppContext";
 import { 
-  ArrowLeft, FileText, Download, CheckCircle, Search, Sparkles, Shield
+  ArrowLeft, Download, Search
 } from "lucide-react";
-import { encryptData } from "../utils/crypto";
-import SensitiveDataField from "../components/SensitiveDataField";
 
 export default function Resultados() {
   const navigate = useNavigate();
   const { playSoundEffect, setIsSideMenuOpen, patientId } = useAppState();
   const [searchTerm, setSearchTerm] = useState("");
-  const [securedResults, setSecuredResults] = useState<any[]>([]);
-  const [isLoadingSecure, setIsLoadingSecure] = useState(true);
+  const [results, setResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleBack = () => {
     playSoundEffect("click");
@@ -64,71 +62,44 @@ export default function Resultados() {
   ];
 
   useEffect(() => {
-    async function initSecureResults() {
-      setIsLoadingSecure(true);
+    async function loadResults() {
+      setIsLoading(true);
       try {
-        let resultsToSecure = staticResults;
-
+        let toShow: any[] = staticResults;
         if (patientId) {
-          const { getDiagnostics } = await import("../../lib/supabase/diagnostic");
-          const res = await getDiagnostics(patientId);
-          if (!res.error && res.data && res.data.length > 0) {
-            resultsToSecure = res.data.map((dbRes: any) => ({
-              id: dbRes.id,
-              testName: dbRes.test_name,
-              date: new Date(dbRes.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
-              specialty: dbRes.specialty?.name || "Especialidad",
-              doctor: dbRes.doctor_name || "Médico",
-              status: dbRes.status || "Verificado",
-              // Use encrypted notes directly from DB
-              encryptedNotes: dbRes.notes_encrypted ? {
-                ciphertext: dbRes.notes_encrypted,
-                iv: dbRes.notes_iv,
-                salt: dbRes.notes_salt
-              } : null,
-              notes: null,
-              metrics: (dbRes.metrics || []).map((m: any) => ({
-                name: m.metric_name,
-                // Use encrypted values from DB (will be shown via SensitiveDataField)
-                encryptedValue: { ciphertext: m.value_encrypted, iv: m.value_iv, salt: m.value_salt },
-                value: null,
-                range: m.normal_range || "",
-                alert: m.has_alert || false
-              }))
-            }));
-          } else if (res.error) {
-            console.warn("getDiagnostics error, using fallback:", res.error);
+          try {
+            const { getDiagnostics } = await import("../../lib/supabase/diagnostic");
+            const res = await getDiagnostics(patientId);
+            if (!res.error && res.data && res.data.length > 0) {
+              toShow = res.data.map((dbRes: any) => ({
+                id: dbRes.id,
+                testName: dbRes.test_name,
+                date: new Date(dbRes.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+                specialty: dbRes.specialty?.name || "Especialidad",
+                doctor: dbRes.doctor_name || "Médico",
+                status: dbRes.status || "Verificado",
+                notes: dbRes.notes || "Sin notas clínicas adicionales.",
+                metrics: (dbRes.metrics || []).map((m: any) => ({
+                  name: m.metric_name,
+                  value: m.value || "-",
+                  range: m.normal_range || "",
+                  alert: m.has_alert || false
+                }))
+              }));
+            }
+          } catch {
+            toShow = staticResults;
           }
         }
-
-        const secured = await Promise.all(
-          resultsToSecure.map(async (res: any) => {
-            // Use pre-encrypted notes from DB, or encrypt static notes
-            const encNotes = res.encryptedNotes?.ciphertext
-              ? res.encryptedNotes
-              : await encryptData(res.notes || "Sin notas clínicas adicionales.", "1234");
-
-            const encMetrics = await Promise.all(
-              (res.metrics || []).map(async (m: any) => {
-                if (m.encryptedValue?.ciphertext) return { ...m };
-                const encVal = await encryptData(m.value || m.name, "1234");
-                return { ...m, encryptedValue: encVal };
-              })
-            );
-            return { ...res, encryptedNotes: encNotes, metrics: encMetrics };
-          })
-        );
-        setSecuredResults(secured);
-      } catch (err) {
-        console.error("Error al cifrar resultados", err);
+        setResults(toShow);
       } finally {
-        setIsLoadingSecure(false);
+        setIsLoading(false);
       }
     }
-    initSecureResults();
+    loadResults();
   }, [patientId]);
 
-  const filteredResults = securedResults.filter(res => 
+  const filteredResults = results.filter(res => 
     res.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     res.doctor.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -164,14 +135,6 @@ export default function Resultados() {
           </p>
         </div>
 
-        {/* Security Info Banner */}
-        <div className="bg-[#FAF6F0] border border-amber-200 rounded-xl p-3 flex gap-2.5 items-center">
-          <Shield className="w-4 h-4 text-amber-700 shrink-0" />
-          <p className="text-[10.5px] text-amber-900 font-medium leading-relaxed">
-            Las métricas diagnósticas y notas médicas se encuentran cifradas con el PIN temporal de demostración <span className="font-mono bg-amber-100 px-1 py-0.2 rounded font-bold">1234</span>. Proporciona control de confidencialidad del paciente.
-          </p>
-        </div>
-
         {/* Search Bar */}
         <div className="relative">
           <input 
@@ -181,18 +144,18 @@ export default function Resultados() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white border border-stone-205 rounded-xl py-2.5 pl-10 pr-4 text-xs font-medium text-stone-700 shadow-xs focus:outline-none focus:border-stone-400"
           />
-          <Search className="w-4 h-4 text-stone-400 absolute left-3 w-4 h-4 top-1/2 transform -translate-y-1/2" />
+          <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
 
         {/* Results Cards List */}
         <div className="space-y-4 flex-1">
-          {isLoadingSecure ? (
+          {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-2">
               <svg className="animate-spin h-6 w-6 text-stone-600" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <span className="text-[10px] text-stone-400 font-bold uppercase font-mono tracking-wider">Cifrando base diagnóstica...</span>
+              <span className="text-[10px] text-stone-400 font-bold uppercase font-mono tracking-wider">Cargando resultados...</span>
             </div>
           ) : filteredResults.length === 0 ? (
             <div className="p-8 text-center text-stone-500 border border-dashed border-stone-200 rounded-2xl bg-[#FCFAF7] text-xs">
@@ -225,14 +188,8 @@ export default function Resultados() {
                           <span className="text-[9px] text-stone-500 font-bold truncate">{m.name}</span>
                           {m.alert && <span className="text-[8px] bg-rose-100 text-rose-800 font-black px-1.5 rounded-full">Alto</span>}
                         </div>
-                        {/* We use SensitiveDataField here for the actual clinical values! */}
-                        <div className="mt-1">
-                          <SensitiveDataField 
-                            label=""
-                            encryptedData={m.encryptedValue}
-                            className="bg-white p-2 border-stone-150"
-                            textColor={m.alert ? "text-rose-750" : "text-stone-900"}
-                          />
+                        <div className="mt-1 bg-white p-2 rounded-lg border border-stone-150">
+                          <span className={`text-xs font-bold font-mono tracking-wide ${m.alert ? "text-rose-750" : "text-stone-900"}`}>{m.value}</span>
                         </div>
                         <span className="text-[8px] text-stone-400 block font-mono mt-1 text-center">{m.range}</span>
                       </div>
@@ -241,14 +198,12 @@ export default function Resultados() {
                 </div>
 
                 {/* Patient notes section */}
-                <div className="mt-1">
-                  <SensitiveDataField 
-                    label="Notas Diagnósticas"
-                    encryptedData={res.encryptedNotes}
-                    className="p-3 bg-stone-100/50 border-stone-200"
-                    textColor="text-stone-700 italic"
-                  />
-                </div>
+                {res.notes && (
+                  <div className="mt-1 p-3 bg-stone-100/50 rounded-lg border border-stone-200">
+                    <span className="block text-[10px] uppercase font-bold text-stone-400 tracking-wider font-mono">Notas Diagnósticas</span>
+                    <p className="text-xs text-stone-700 italic mt-1">{res.notes}</p>
+                  </div>
+                )}
 
                 {/* Floating Download Option */}
                 <button
