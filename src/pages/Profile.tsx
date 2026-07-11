@@ -20,8 +20,6 @@ export default function Profile() {
   } = useAppState();
 
   const [encryptedData, setEncryptedData] = useState<{
-    dni: any;
-    bloodType: any;
     emergencyPhone: any;
   } | null>(null);
 
@@ -29,16 +27,6 @@ export default function Profile() {
     async function loadProfileValues() {
       if (patientProfile) {
         setEncryptedData({
-          dni: {
-            ciphertext: patientProfile.dni_encrypted,
-            iv: patientProfile.dni_iv,
-            salt: patientProfile.dni_salt
-          },
-          bloodType: patientProfile.blood_type_encrypted ? {
-            ciphertext: patientProfile.blood_type_encrypted,
-            iv: patientProfile.blood_type_iv,
-            salt: patientProfile.blood_type_salt
-          } : null,
           emergencyPhone: patientProfile.emergency_phone_encrypted ? {
             ciphertext: patientProfile.emergency_phone_encrypted,
             iv: patientProfile.emergency_phone_iv,
@@ -47,16 +35,8 @@ export default function Profile() {
         });
       } else {
         try {
-          // Fallback encriptando valores demo en render inicial
-          const dniEnc = await encryptData("45.289.102-K", "1234");
-          const bloodEnc = await encryptData("🩸 O Positivo (EsSalud Altura)", "1234");
           const phoneEnc = await encryptData("+34 600 000 000 (Ricardo Martínez)", "1234");
-          
-          setEncryptedData({
-            dni: dniEnc,
-            bloodType: bloodEnc,
-            emergencyPhone: phoneEnc
-          });
+          setEncryptedData({ emergencyPhone: phoneEnc });
         } catch (err) {
           console.error("Critical: Could not initialize secure medical profile", err);
         }
@@ -128,28 +108,6 @@ export default function Profile() {
             <span className="text-sm font-bold text-stone-900 mt-1 block">{patientProfile?.full_name || "Elena Martínez Ruiz"}</span>
           </div>
 
-          {encryptedData ? (
-            <>
-              <SensitiveDataField 
-                label="Número de Documento (DNI)" 
-                encryptedData={encryptedData.dni} 
-              />
-
-              <SensitiveDataField 
-                label="Tipo de Sangre" 
-                encryptedData={encryptedData.bloodType} 
-                textColor="text-rose-750"
-              />
-            </>
-          ) : (
-            <div className="py-6 flex flex-col items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-stone-600" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span className="text-[10px] text-stone-400 font-bold uppercase font-mono">Iniciando bóveda...</span>
-            </div>
-          )}
         </div>
 
         {/* EMERGENCY DIAL CONTROLS */}

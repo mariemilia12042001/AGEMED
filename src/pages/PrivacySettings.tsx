@@ -63,7 +63,7 @@ export default function PrivacySettings() {
             <div>
               <h4 className="text-xs font-bold text-amber-900 mb-1">Cifrado Local Activo (AES-GCM + PBKDF2)</h4>
               <p className="text-[11px] text-amber-800 font-medium">
-                Sus datos (DNI, tipo de sangre, recetas, montos de facturación y métricas) se encriptan localmente mediante la API Web Crypto del navegador con una clave de derivación derivada de su contraseña/PIN. Ningún dato sensible viaja en texto plano.
+                Sus datos sensibles (recetas, montos de facturación, contactos de emergencia y métricas) se encriptan localmente mediante la API Web Crypto del navegador con una clave de derivación derivada de su contraseña/PIN. Ningún dato sensible viaja en texto plano.
               </p>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default function PrivacySettings() {
             <div>
               <h4 className="text-xs font-bold text-stone-900 mb-1">Clave de Acceso Médico Única</h4>
               <p className="text-[11px] text-stone-500">
-                Solo el especialista autorizado en triaje puede desencriptar e ingresar diagnósticos. Su DNI actúa como llave de firmas.
+                Solo el especialista autorizado en triaje puede desencriptar e ingresar diagnósticos. Su identificador único actúa como llave de firmas.
               </p>
             </div>
           </div>
