@@ -178,32 +178,9 @@ export const initialDoctors: Doctor[] = [
   },
 ];
 
-// Fecha de la cita demo: mañana en formato ISO YYYY-MM-DD
-const _tomorrow = new Date();
-_tomorrow.setDate(_tomorrow.getDate() + 1);
-const _tomorrowIso = `${_tomorrow.getFullYear()}-${String(_tomorrow.getMonth() + 1).padStart(2, "0")}-${String(_tomorrow.getDate()).padStart(2, "0")}`;
-
-export const initialAppointments: Appointment[] = [
-  {
-    id: "appt-1",
-    doctorName: "Dr. Alejandro Valdivia",
-    specialty: "Cardiología",
-    doctorPhoto: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=300",
-    date: _tomorrowIso,
-    time: "10:30 AM",
-    locationName: "Clínica San Lucas",
-    locationDetails: "Torre Médica, Piso 4, Consultorio 402",
-    status: "scheduled",
-    consultationReason: "Control de arritmia leve y revisión general de electrocardiograma.",
-    symptoms: "Fatiga menor por las tardes",
-    symptomsDuration: "2-3 días",
-    preparationItems: [
-      { id: "pre-1", label: "Ayuno de 8 horas", checked: true },
-      { id: "pre-2", label: "Traer historial previo", checked: true },
-      { id: "pre-3", label: "Llegar 15 min antes", checked: true },
-    ],
-  }
-];
+// Sin citas demo: cada usuario empieza con lista vacía y va agregando las que reserva.
+// Así no aparece una cita que el usuario no eligió.
+export const initialAppointments: Appointment[] = [];
 
 export const initialPrescriptions: Prescription[] = [
   {
@@ -261,15 +238,6 @@ export const initialPrescriptions: Prescription[] = [
 export const defaultNotifications: PushNotification[] = [
   {
     id: "not-1",
-    type: "cita",
-    title: "Cita programada para mañana",
-    body: "Estimada Elena, recuerde su cita con el Dr. Alejandro Valdivia de Cardiología mañana a las 10:30 AM en Clínica San Lucas.",
-    receivedAt: "Hace 10 minutos",
-    read: false,
-    actionPayload: "details-appt-1"
-  },
-  {
-    id: "not-2",
     type: "medicamento",
     title: "Toma de Medicamento: Atorvastatina",
     body: "Es hora de tomar Atorvastatina (1 tableta - 20mg). Recuerde ingerirla antes de acostarse para control de lípidos.",

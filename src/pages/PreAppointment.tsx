@@ -135,13 +135,30 @@ export default function PreAppointment() {
       </div>
 
       <div className="p-6">
+        {!activeAppt ? (
+          // EMPTY STATE: sin cita programada
+          <div className="flex flex-col items-center justify-center text-center py-12 px-4 border border-dashed border-stone-300 rounded-2xl bg-[#FBF9F6]">
+            <span className="text-4xl mb-3">📅</span>
+            <h4 className="font-serif text-base font-bold text-stone-900">Sin citas próximas</h4>
+            <p className="text-xs text-stone-500 mt-2 max-w-xs leading-relaxed">
+              No tiene ninguna consulta agendada. Reserve una nueva y aquí verá los preparativos y la información de su próxima cita.
+            </p>
+            <button
+              onClick={() => { playSoundEffect("click"); navigate("/reservar-cita"); }}
+              className="mt-5 bg-[#58735F] hover:bg-[#465c4c] text-white font-bold py-2.5 px-5 rounded-xl text-xs cursor-pointer active:scale-98 transition"
+            >
+              Reservar una consulta
+            </button>
+          </div>
+        ) : (
+          <>
         {/* Badge & title */}
         <div className="text-center mb-6">
           <span className="bg-emerald-50 text-emerald-800 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-100 font-mono flex items-center gap-1.5 w-fit mx-auto">
             <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-ping"></span>
-            🔔 Recordatorio 24h
+            🔔 Recordatorio de asistencia
           </span>
-          <h2 className="font-serif text-2xl font-bold text-stone-900 mt-3 leading-tight text-center">Usted tiene una cita mañana</h2>
+          <h2 className="font-serif text-2xl font-bold text-stone-900 mt-3 leading-tight text-center">Su próxima consulta</h2>
           <p className="text-stone-500 text-xs mt-2 leading-relaxed text-center">
             Hemos preparado todo para su visita. Por favor, revise los detalles a continuación y confirme su asistencia.
           </p>
@@ -157,9 +174,9 @@ export default function PreAppointment() {
             <div>
               <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest font-mono">Fecha y Hora</p>
               <h4 className="text-sm font-bold text-stone-900 mt-0.5">
-                {activeAppt ? formatFriendlyDate(activeAppt.date) : "Mañana, 14 de Octubre"}
+                {formatFriendlyDate(activeAppt.date)}
               </h4>
-              <p className="text-xs text-stone-650 font-semibold font-mono">{activeAppt?.time || "10:30 AM"}</p>
+              <p className="text-xs text-stone-650 font-semibold font-mono">{activeAppt.time}</p>
             </div>
           </div>
 
@@ -170,8 +187,8 @@ export default function PreAppointment() {
             </div>
             <div>
               <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest font-mono">Especialidad</p>
-              <h4 className="text-sm font-bold text-stone-900 mt-0.5">{activeAppt?.specialty || "Cardiología Preventiva"}</h4>
-              <p className="text-xs text-stone-600">Dr(a). {activeAppt?.doctorName || "Dr. Alejandro Valdivia"}</p>
+              <h4 className="text-sm font-bold text-stone-900 mt-0.5">{activeAppt.specialty}</h4>
+              <p className="text-xs text-stone-600">{activeAppt.doctorName}</p>
             </div>
           </div>
 
@@ -182,8 +199,8 @@ export default function PreAppointment() {
             </div>
             <div>
               <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest font-mono">Ubicación</p>
-              <h4 className="text-sm font-bold text-stone-900 mt-0.5">{activeAppt?.locationName || "Clínica San Lucas"}</h4>
-              <p className="text-xs text-stone-500">{activeAppt?.locationDetails || "Torre Médica, Piso 4, Consultorio 402"}</p>
+              <h4 className="text-sm font-bold text-stone-900 mt-0.5">{activeAppt.locationName}</h4>
+              <p className="text-xs text-stone-500">{activeAppt.locationDetails}</p>
             </div>
           </div>
 
@@ -254,6 +271,8 @@ export default function PreAppointment() {
             ))}
           </div>
         </div>
+          </>
+        )}
 
       </div>
     </div>

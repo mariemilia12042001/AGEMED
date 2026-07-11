@@ -258,20 +258,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     {
       id: "m1",
       sender: "assistant",
-      text: "¡Hola! Soy tu Asistente AGEMED. Estoy aquí para ayudarte con tus citas, resolver dudas médicas generales o asisterte con el uso de la aplicación.",
+      text: "¡Hola! Soy tu Asistente AGEMED. Estoy aquí para ayudarte con tus citas, resolver dudas médicas generales y guiarte en el uso de la aplicación.",
       timestamp: "10:00 AM"
     },
     {
       id: "m2",
       sender: "assistant",
-      text: "¿En qué puedo apoyarte hoy? He notado que tienes una cita programada para mañana.",
+      text: "¿En qué puedo apoyarte hoy? Puedes preguntarme sobre preparación para tus consultas, indicaciones de llegada o sobre tus recetas.",
       timestamp: "10:00 AM"
-    },
-    {
-      id: "m3",
-      sender: "user",
-      text: "Hola, tengo dudas sobre mi cita de mañana.",
-      timestamp: "10:01 AM"
     }
   ]);
   const [userChatInput, setUserChatInput] = useState<string>("");
@@ -516,10 +510,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         id: `not-${Date.now()}`,
         type: "cita",
         title: "Cita Pendiente de Confirmación",
-        body: "Su cita de Cardiología Preventiva con el Dr. Alejandro Valdivia se encuentra lista. Confirme su asistencia.",
+        body: "Tiene una consulta médica próxima. Revise sus preparativos y confirme su asistencia en la app.",
         receivedAt: "Ahora mismo",
         read: false,
-        actionPayload: "details-appt-1"
+        actionPayload: "mis-citas"
       };
     } else {
       newNot = {
@@ -547,8 +541,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     playSoundEffect("click");
     if (not.actionPayload === "history") {
       navigateCallback("/history");
-    } else if (not.actionPayload === "details-appt-1") {
-      navigateCallback("/pre-appointment");
+    } else if (not.actionPayload === "mis-citas" || not.actionPayload === "details-appt-1") {
+      navigateCallback("/mis-citas");
     }
   };
 
@@ -673,10 +667,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       // 3rd attempt: offline fallback mock response
       console.error("AI Assistant request error:", err);
       setTimeout(() => {
+        const nextAppt = appointments
+          .filter(a => a.status === "scheduled")
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+        const contextInfo = nextAppt
+          ? `Recuerde que su próxima consulta es con ${nextAppt.doctorName} de ${nextAppt.specialty} el ${nextAppt.date} a las ${nextAppt.time} en ${nextAppt.locationName}.`
+          : "Actualmente no tiene citas programadas. Puede reservar una desde el panel principal.";
         const assistantMsg: ChatMessage = {
           id: `a-${Date.now()}`,
           sender: "assistant",
-          text: `Estimada Elena, he registrado tu consulta: "${textToSend}". Recuerda que tu cita con el Dr. Valdivia es mañana a las 10:30 AM en Clínica San Lucas y es vital mantener tu ayuno de 8 horas. No dudes en consultarme sobre tus medicamentos.`,
+          text: `He registrado su consulta: "${textToSend}". ${contextInfo} Si tiene dudas específicas sobre medicamentos o preparación previa, puede escribirme aquí mismo.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         setChatMessages(prev => [...prev, assistantMsg]);
