@@ -21,7 +21,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 
 export default function Specialties() {
   const navigate = useNavigate();
-  const { playSoundEffect, setSelectedSpecialty } = useAppState();
+  const { playSoundEffect, setSelectedSpecialty, resetBookingFlow } = useAppState();
   const [searchQuery, setSearchQuery] = useState("");
   
   const [specialties, setSpecialties] = useState<any[]>([]);
@@ -68,6 +68,8 @@ export default function Specialties() {
 
   const handleSelect = (specName: string) => {
     playSoundEffect("click");
+    // Nueva reserva: reseteamos datos residuales
+    resetBookingFlow();
     setSelectedSpecialty(specName);
     navigate("/doctors");
   };

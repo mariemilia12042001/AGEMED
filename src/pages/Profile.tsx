@@ -10,7 +10,7 @@ export default function Profile() {
   const {
     playSoundEffect,
     setIsLoggedIn,
-    setIsCallActive,
+    startEmergencyCall,
     patientProfile,
   } = useAppState();
 
@@ -24,8 +24,7 @@ export default function Profile() {
   };
 
   const handleDialEmergency = () => {
-    playSoundEffect("call");
-    setIsCallActive(true);
+    startEmergencyCall(emergencyContactName, emergencyPhone);
   };
 
   return (

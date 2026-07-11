@@ -27,7 +27,7 @@ function formatFriendlyDate(dateStr: string): string {
 
 export default function MisCitas() {
   const navigate = useNavigate();
-  const { appointments, setAppointments, playSoundEffect, setIsSideMenuOpen } = useAppState();
+  const { appointments, setAppointments, playSoundEffect, setIsSideMenuOpen, resetBookingFlow } = useAppState();
   
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -88,7 +88,7 @@ export default function MisCitas() {
               No se han detectado reservas pendientes para tu documento de identidad en este dispositivo.
             </p>
             <button
-              onClick={() => { playSoundEffect("click"); navigate("/reservar-cita"); }}
+              onClick={() => { playSoundEffect("click"); resetBookingFlow(); navigate("/reservar-cita"); }}
               className="mt-4 bg-[#58735F] text-white font-bold py-2 px-4 rounded-xl text-[11px] hover:bg-[#465c4c] transition"
             >
               Reservar Nueva Consulta

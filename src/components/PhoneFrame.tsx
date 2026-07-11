@@ -26,7 +26,23 @@ export default function PhoneFrame({ children }: { children: React.ReactNode }) 
     setShowPdfAlert,
     activePdfData,
     downloadingDocId,
+    activeCallInfo,
+    setActiveCallInfo,
   } = useAppState();
+
+  // Fallback si no hay información específica del contacto (llamada legacy)
+  const callName = activeCallInfo?.name || "Dr. Alejandro Valdivia";
+  const callRole = activeCallInfo?.role || "Llamada de EsSalud";
+  const callPhoto = activeCallInfo?.photo || "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300";
+  const callMessage = activeCallInfo?.message || "El especialista a cargo de su cita le está timbrando para validar sus síntomas.";
+  const callOrigin = activeCallInfo?.origin || 'doctor';
+
+  const hangUpCall = () => {
+    playSoundEffect("hangup");
+    setIsIncomingCall(false);
+    setIsCallActive(false);
+    setActiveCallInfo(null);
+  };
 
   const handleTabClick = (path: string) => {
     playSoundEffect("click");
@@ -165,21 +181,18 @@ export default function PhoneFrame({ children }: { children: React.ReactNode }) 
             <span className="w-16 h-16 rounded-full bg-emerald-600/10 text-emerald-500 flex items-center justify-center animate-pulse border border-emerald-500/20 mx-auto">
               <Phone className="w-8 h-8 rotate-90" />
             </span>
-            <h3 className="text-2xl font-serif font-bold text-white mt-6">Dr. Alejandro Valdivia</h3>
-            <p className="text-xs text-neutral-400 font-mono font-medium tracking-widest mt-2 uppercase">Llamada de EsSalud</p>
+            <h3 className="text-2xl font-serif font-bold text-white mt-6">{callName}</h3>
+            <p className="text-xs text-neutral-400 font-mono font-medium tracking-widest mt-2 uppercase">{callRole}</p>
           </div>
 
           <p className="text-xs text-neutral-300 text-center leading-relaxed font-sans max-w-xs">
-            El especialista a cargo de su cita de Cardiología Preventiva le está timbrando para validar sus síntomas pre-consulta.
+            {callMessage}
           </p>
 
           <div className="flex justify-center gap-12 w-full pb-12 font-sans font-bold text-xs">
             {/* Hang up */}
             <button 
-              onClick={() => {
-                playSoundEffect("hangup");
-                setIsIncomingCall(false);
-              }}
+              onClick={hangUpCall}
               className="flex flex-col items-center gap-2 group cursor-pointer"
             >
               <div className="w-14 h-14 bg-rose-600 hover:bg-rose-500 rounded-full flex items-center justify-center shadow-lg transform active:scale-90 transition">
@@ -213,15 +226,16 @@ export default function PhoneFrame({ children }: { children: React.ReactNode }) 
           <div className="text-center pt-12">
             <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-emerald-500/30 mx-auto">
               <img 
-                src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300" 
-                alt="Dr. Valdivia" 
+                src={callPhoto} 
+                alt={callName} 
                 className="w-full h-full object-cover"
               />
             </div>
-            <h3 className="text-2xl font-bold font-serif text-white mt-6">Dr. Alejandro Valdivia</h3>
+            <h3 className="text-2xl font-bold font-serif text-white mt-6">{callName}</h3>
             <p className="text-[11px] text-emerald-400 font-mono font-medium tracking-widest mt-1.5 uppercase flex items-center justify-center gap-1.5">
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> Conectado • {Math.floor(callTimer / 60)}:{(callTimer % 60).toString().padStart(2, '0')}
             </p>
+            <p className="text-[10px] text-neutral-400 font-mono font-medium mt-1 uppercase">{callRole}</p>
           </div>
 
           {/* Call soundwaves */}
@@ -236,15 +250,16 @@ export default function PhoneFrame({ children }: { children: React.ReactNode }) 
           </div>
 
           <div className="text-center font-sans">
-            <p className="text-xs text-stone-400 italic">"Estimada Elena, ¿cómo se siente hoy con respecto a su presión?"</p>
+            <p className="text-xs text-stone-400 italic">
+              {callOrigin === 'emergency'
+                ? '"Estamos conectando su llamada segura, por favor mantenga la línea..."'
+                : '"Estimada Elena, ¿cómo se siente hoy con respecto a su presión?"'}
+            </p>
           </div>
 
           <div className="pb-12 text-center text-xs text-neutral-400 font-bold font-sans">
             <button 
-              onClick={() => {
-                playSoundEffect("hangup");
-                setIsCallActive(false);
-              }}
+              onClick={hangUpCall}
               className="w-14 h-14 bg-rose-600 hover:bg-rose-500 rounded-full flex items-center justify-center shadow-lg transform active:scale-90 transition cursor-pointer mx-auto mb-2"
             >
               <Phone className="w-6 h-6 rotate-135" />

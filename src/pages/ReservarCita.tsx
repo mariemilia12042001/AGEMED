@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppContext";
 import { 
@@ -7,7 +7,13 @@ import {
 
 export default function ReservarCita() {
   const navigate = useNavigate();
-  const { playSoundEffect, setSelectedSpecialty, setIsSideMenuOpen } = useAppState();
+  const { playSoundEffect, setSelectedSpecialty, setIsSideMenuOpen, resetBookingFlow } = useAppState();
+
+  // Al iniciar una nueva reserva, limpiamos los datos residuales de reservas previas
+  useEffect(() => {
+    resetBookingFlow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBack = () => {
     playSoundEffect("click");

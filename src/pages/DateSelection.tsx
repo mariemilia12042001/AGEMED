@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "../context/AppContext";
 import { 
-  ArrowLeft, ChevronRight, Clock, Check, AlertCircle 
+  ArrowLeft, ChevronRight, Clock, Check, AlertCircle, MapPin
 } from "lucide-react";
 import { Appointment } from "../types";
 
@@ -200,12 +200,38 @@ export default function DateSelection() {
           <p className="text-stone-500 text-xs mt-2 leading-relaxed">
             Elija el día y la hora que mejor se adapten a su agenda de salud.
           </p>
-          {selectedDoctor && (
-            <p className="text-[11px] text-emerald-800 font-mono font-semibold mt-2 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 inline-block">
-              Disponibilidad de {selectedDoctor.name}
-            </p>
-          )}
         </div>
+
+        {/* SEDE / CENTRO ASIGNADO al doctor */}
+        {selectedDoctor && (
+          <div className="mt-4 bg-white p-3.5 rounded-xl border border-stone-200 shadow-xs flex gap-3 items-start">
+            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-800 shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[9px] uppercase font-bold text-stone-400 tracking-wider font-mono block">Centro de atención</span>
+              <h4 className="text-xs font-bold text-stone-900 mt-0.5 truncate">
+                {(selectedDoctor.location || "Sede principal").split(",")[0].trim()}
+              </h4>
+              <p className="text-[10px] text-stone-500 mt-0.5 truncate">
+                {(selectedDoctor.location || "").split(",").slice(1).join(",").trim() || "Consultorio de especialidad"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { playSoundEffect("click"); navigate("/doctors"); }}
+              className="text-[10px] font-bold text-stone-500 hover:text-stone-900 underline whitespace-nowrap"
+            >
+              Cambiar
+            </button>
+          </div>
+        )}
+
+        {selectedDoctor && (
+          <p className="text-[11px] text-emerald-800 font-mono font-semibold mt-3 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 inline-block">
+            Disponibilidad de {selectedDoctor.name}
+          </p>
+        )}
 
         {/* Calendar Widget Container */}
         <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs mt-6 text-left">

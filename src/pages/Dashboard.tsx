@@ -13,11 +13,14 @@ export default function Dashboard() {
     setIsSideMenuOpen,
     patientProfile,
     appointments,
-    isDataLoading
+    isDataLoading,
+    resetBookingFlow
   } = useAppState();
 
   const handleSpecialtyClick = (specialty: string) => {
     playSoundEffect("click");
+    // Nueva reserva: reseteamos datos residuales
+    resetBookingFlow();
     setSelectedSpecialty(specialty);
     navigate("/doctors");
   };
@@ -139,6 +142,14 @@ export default function Dashboard() {
               >
                 Ver detalles de preparación
               </button>
+              {appointments.filter(a => a.status === "scheduled").length > 1 && (
+                <button
+                  onClick={() => { playSoundEffect("click"); navigate("/mis-citas"); }}
+                  className="w-full text-center text-[11px] font-bold text-stone-500 hover:text-stone-900 underline mt-2.5 relative z-10 cursor-pointer"
+                >
+                  Ver todas mis citas ({appointments.filter(a => a.status === "scheduled").length})
+                </button>
+              )}
             </div>
           ) : (
             <div className="bg-white p-6 rounded-2xl border border-stone-200/80 border-dashed shadow-xs flex flex-col items-center justify-center text-center py-8">
@@ -147,6 +158,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => {
                   playSoundEffect("click");
+                  resetBookingFlow();
                   navigate("/reservar-cita");
                 }}
                 className="mt-3 bg-stone-900 hover:bg-stone-950 text-white px-4 py-2 rounded-xl text-[11px] font-bold active:scale-98 transition cursor-pointer"

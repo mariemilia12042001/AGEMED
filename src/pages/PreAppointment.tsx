@@ -219,6 +219,17 @@ export default function PreAppointment() {
           </div>
         </div>
 
+        {/* LINK a la lista completa de citas para no sesgar al usuario */}
+        {appointments.filter(a => a.status === "scheduled").length > 1 && (
+          <button
+            type="button"
+            onClick={() => { playSoundEffect("click"); navigate("/mis-citas"); }}
+            className="w-full text-center text-[11px] font-bold text-stone-500 hover:text-stone-900 underline mt-4 cursor-pointer"
+          >
+            Ver todas mis citas ({appointments.filter(a => a.status === "scheduled").length})
+          </button>
+        )}
+
         {/* APPOINTMENT PREPARATION CHECKLISTS */}
         <div className="mt-6 bg-[#FAF8F5] p-5 rounded-2xl border border-stone-200">
           <h3 className="font-serif text-sm font-bold text-stone-800 mb-3 flex items-center gap-2 uppercase tracking-wider text-left">

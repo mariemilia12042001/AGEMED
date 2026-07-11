@@ -61,6 +61,15 @@ export function mapDbPrescriptionToFrontend(dbPresc: any): Prescription {
   };
 }
 
+// Información del contacto en llamada activa/entrante
+export interface CallInfo {
+  name: string;
+  role: string;        // Ej. "Contacto de Emergencia", "Especialista de Cardiología"
+  photo?: string;      // URL opcional
+  message?: string;    // Frase o subtítulo opcional
+  origin: 'doctor' | 'emergency';
+}
+
 export function mapDbNotificationToFrontend(dbNot: any): PushNotification {
   return {
     id: dbNot.id,
@@ -172,6 +181,13 @@ interface AppContextProps {
   callTimer: number;
   setCallTimer: (time: number) => void;
   triggerCallSimulation: (navigateCallback: (path: string) => void) => void;
+  // Información del contacto que está sonando o en llamada
+  activeCallInfo: CallInfo | null;
+  setActiveCallInfo: React.Dispatch<React.SetStateAction<CallInfo | null>>;
+  startEmergencyCall: (contactName: string, phone?: string) => void;
+
+  // Reset del flujo de reserva
+  resetBookingFlow: () => void;
 
   // Real-time top bar system clock
   systemTime: string;
@@ -270,6 +286,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [isIncomingCall, setIsIncomingCall] = useState<boolean>(false);
   const [isCallActive, setIsCallActive] = useState<boolean>(false);
   const [callTimer, setCallTimer] = useState<number>(0);
+  const [activeCallInfo, setActiveCallInfo] = useState<CallInfo | null>(null);
   const callIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Tracking system time
@@ -548,11 +565,48 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }, 1500);
   };
 
-  // Emergency Call Simulation
+  // Emergency Call Simulation (llamada entrante de un doctor - desde LeftSidebar)
   const triggerCallSimulation = (navigateCallback: (path: string) => void) => {
     playSoundEffect("call");
+    setActiveCallInfo({
+      name: "Dr. Alejandro Valdivia",
+      role: "Especialista de Cardiología",
+      photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=300",
+      message: "El especialista a cargo de su cita de Cardiología le está timbrando para validar sus síntomas pre-consulta.",
+      origin: 'doctor',
+    });
     setIsIncomingCall(true);
     navigateCallback("/profile");
+  };
+
+  // Llamada saliente al contacto de emergencia (desde Perfil)
+  const startEmergencyCall = (contactName: string, phone?: string) => {
+    playSoundEffect("call");
+    setActiveCallInfo({
+      name: contactName,
+      role: "Contacto de Emergencia",
+      photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300",
+      message: phone
+        ? `Marcando al ${phone}. Espere a que su contacto de emergencia responda.`
+        : "Estableciendo llamada segura con su contacto de emergencia asignado.",
+      origin: 'emergency',
+    });
+    setIsCallActive(true);
+  };
+
+  // Reset del flujo de reserva de cita (para que datos previos no queden guardados
+  // al iniciar una nueva reserva).
+  const resetBookingFlow = () => {
+    setSelectedDoctor(null);
+    setConsultationReason("");
+    setSymptomsInput("");
+    setSymptomsDuration("2-3 días");
+    setSelectedBookDate(1);
+    setSelectedBookTime("09:00 AM");
+    setSedeFilter("Cualquiera");
+    setRatingFilter(0);
+    setTurnoFilter("Cualquiera");
+    setSearchDoctorQuery("");
   };
 
   // Chat conversation
@@ -713,6 +767,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         callTimer,
         setCallTimer,
         triggerCallSimulation,
+        activeCallInfo,
+        setActiveCallInfo,
+        startEmergencyCall,
+        resetBookingFlow,
         systemTime,
         isSideMenuOpen,
         setIsSideMenuOpen

@@ -16,9 +16,22 @@ export default function Doctors() {
     setSelectedDoctor,
     playSoundEffect,
     sedeFilter,
+    setSedeFilter,
     ratingFilter,
     turnoFilter
   } = useAppState();
+
+  // Sedes disponibles según los doctores fallback (lo que ve el usuario en el demo)
+  const SEDES_CENTROS = [
+    { key: "Cualquiera",           label: "Todos los centros" },
+    { key: "Clínica San Lucas",    label: "Clínica San Lucas" },
+    { key: "Hospital Real de San Rafael", label: "Hospital San Rafael" },
+    { key: "Sede Centro",          label: "Sede Centro" },
+    { key: "Sede Norte",           label: "Sede Norte" },
+    { key: "Sede Sur",             label: "Sede Sur" },
+    { key: "Sede Este",            label: "Sede Este" },
+    { key: "Clínica Central",      label: "Clínica Central" },
+  ];
 
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,15 +97,18 @@ export default function Doctors() {
 
     function fallbackLocalFiltering() {
       const filteredLocal = initialDoctors.filter((doc: Doctor) => {
-        const matchesSpecialty = 
-          selectedSpecialty === "Medicina General" || 
-          doc.specialty.toLowerCase() === selectedSpecialty.toLowerCase();
+        const matchesSpecialty = doc.specialty.toLowerCase() === selectedSpecialty.toLowerCase();
         
         const matchesSearch = 
           doc.name.toLowerCase().includes(searchDoctorQuery.toLowerCase()) ||
           doc.description.toLowerCase().includes(searchDoctorQuery.toLowerCase());
 
-        return matchesSpecialty && matchesSearch;
+        const matchesSede = sedeFilter === "Cualquiera" ||
+          doc.location.toLowerCase().includes(sedeFilter.toLowerCase());
+
+        const matchesRating = !ratingFilter || doc.rating >= ratingFilter;
+
+        return matchesSpecialty && matchesSearch && matchesSede && matchesRating;
       });
       setDoctors(filteredLocal);
     }
@@ -150,6 +166,27 @@ export default function Doctors() {
           <Search className="w-4 h-4 text-stone-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
         </div>
 
+        {/* SEDE / CENTRO DE SALUD SELECTOR */}
+        <div className="mt-4">
+          <span className="text-[10px] font-mono text-stone-500 font-bold uppercase tracking-wider">Centro de salud</span>
+          <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin whitespace-nowrap">
+            {SEDES_CENTROS.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => { playSoundEffect("click"); setSedeFilter(s.key); }}
+                className={`shrink-0 py-1.5 px-3 rounded-lg text-[11px] font-bold transition cursor-pointer border ${
+                  sedeFilter === s.key
+                    ? "bg-stone-950 text-white border-stone-950"
+                    : "bg-white text-stone-700 border-stone-200 hover:border-stone-400"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Filter header */}
         <div className="mt-3.5 flex justify-between items-center">
           <span className="text-[11px] font-mono text-stone-400 font-bold uppercase">
@@ -159,7 +196,7 @@ export default function Doctors() {
             onClick={() => { playSoundEffect("click"); navigate("/doctors-filter"); }}
             className="flex items-center gap-1.5 bg-white border border-stone-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-stone-700 hover:border-stone-400 cursor-pointer"
           >
-            <Filter className="w-3.5 h-3.5" /> Filtrar
+            <Filter className="w-3.5 h-3.5" /> Más Filtros
           </button>
         </div>
 
